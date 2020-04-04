@@ -7,25 +7,35 @@ client.commands = new Discord.Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
+servers = {};
+
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
 
-client.once("ready", () => {
-  console.log("ready!")
-})
+client.on( 'warn', console.warn );
+client.on( 'error', console.error );
+
+client.on( 'ready', () => console.log('ready.') );
+client.on( 'disconnect', () => console.log('Disconected.') )
+client.on( 'reconnecting ', () => console.log('Reconnecting.') )
+
+client.login(token);
 
 client.on('message', async message => {
-	if (!message.author.bot && message.content.toLowerCase().includes("queen") ) {
+	if ( message.author.bot ) return;
+
+	if ( message.content.toLowerCase().includes(" queen ") ) {
 		message.channel.send(`<@${message.author.id}> The word 'queen' is banned! Please don't use it.`);
 	}
 
-  if (!message.content.startsWith(prefix) || message.author.bot) return;
+  if ( !message.content.startsWith(prefix) ) return;
 
   const args = message.content.slice(prefix.length).split(/ +/);
   const commandName = args.shift().toLowerCase();
-  if (!client.commands.has(commandName)) return;
+
+  if ( !client.commands.has(commandName) ) return;
   const command = client.commands.get(commandName);
 
   try {
@@ -35,5 +45,3 @@ client.on('message', async message => {
 	  message.reply('there was an error trying to execute that command!');
   }
 })
-
-client.login(token)

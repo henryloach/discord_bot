@@ -6,7 +6,7 @@ module.exports = {
 	name: 'weather',
 	description: 'weather',
 	execute(message, args) {
-    if ( !args[0] ) message.channel.send("Need a city as an argument")
+    if ( !args[0] ) message.channel.send("Need a city as an argument");
     const city = args[0];
     console.log(weatherAPIKey);
     fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${weatherAPIKey}`)
@@ -20,7 +20,7 @@ module.exports = {
           console.log(parseWeather);
           message.channel.send(
             `
-            The current weather
+            The current weather:
             Location: ${parseWeather.name}, ${parseWeather.sys.country} ${getFlag(parseWeather.sys.country)}
             Forecast: ${parseWeather.weather[0].main}
             Curret Temperature: ${Math.round(parseWeather.main.temp - 273.15)} °C
