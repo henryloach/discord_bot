@@ -8,7 +8,6 @@ module.exports = {
 	execute(message, args) {
     if ( !args[0] ) message.channel.send("Need a city as an argument");
     const city = args[0];
-    console.log(weatherAPIKey);
     fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${weatherAPIKey}`)
       .then(response => {
         return response.json();
@@ -17,7 +16,6 @@ module.exports = {
         if (parseWeather.cod === '404') {
           message.channel.send("Something went wrong 404.")
         } else {
-          console.log(parseWeather);
           message.channel.send(
             `
             The current weather:

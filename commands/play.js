@@ -1,10 +1,14 @@
 const ytdl = require('ytdl-core');
-// const YouTube = require('simple-youtube-api');
-// const youtube = new YouTube();
+const YouTube = require('simple-youtube-api');
+const { ytAPIKey: key } = require('../config.json');
+const youtube = new YouTube(key);
+
 module.exports = {
 	name: 'play',
 	description: 'play',
 	async execute(message, args) {
+
+		console.log("From play");
 
     if ( !message.member.voiceChannel ) {
       message.channel.send('You must be in a voice channel to queue a song!');
@@ -18,10 +22,10 @@ module.exports = {
 
 		const permissions = message.member.voiceChannel.permissionsFor(message.client.user);
 		if ( !permissions.has('CONNECT')) {
-			return message.channel.send('Lacking permisions to join voice channel. Check permisions.')
+			return message.channel.send('Lacking permisions to join voice channel. Check permisions.');
 		}
 		if ( !permissions.has('SPEAK') ) {
-			return message.channel.send('Lacking permisions to speak. Check permisions.')
+			return message.channel.send('Lacking permisions to speak. Check permisions.');
 		}
 
 		if ( !servers[message.guild.id] ) servers[message.guild.id] = {
@@ -39,19 +43,28 @@ module.exports = {
 
 		let url;
 		if ( !search_string.includes('.com') ) {
-			const items = await ytdl.getInfo(search_string);
-			url = items[0].url;
-			console.log(items);
+			const videos = await youtube.searchVideos(search_string, 1);
+			const vidId = videos[0].id;
+			url = `https://www.youtube.com/watch?v=${vidId}`;
 		} else {
 			url = search_string;
 		}
 
-		const songInfo = await ytdl.getInfo(url);
-		const song = {
-			title: songInfo.title,
-			url: songInfo.video_url,
+		let songInfo = {};
+		let song = {};
+		try {
+			songInfo = await ytdl.getInfo(url);
+			song = {
+				title: songInfo.title,
+				url: songInfo.video_url,
+			}
+		} catch(e) {
+			console.log(e);
+			message.channel.send(`That url didn't seem to work.`);
+			return;
 		}
 
+		message.channel.send(`Queueing:\t\`${song.title}\``);
 		server.queue.push({
 			title: song.title,
 			url: song.url,
@@ -61,36 +74,46 @@ module.exports = {
 		});
 
 		server.queue.sort( (a, b) => {
-			if ( a.priority > b.priority ) return 1;
+			if ( a.priority >= b.priority ) return 1;
 			else return -1;
 		});
-
-		console.log(message.author.id + " " + server.priorities[message.author.id]);
 
 		if ( !message.guild.voiceConnection ) {
 			message.member.voiceChannel.join()
 			.then( function(connection) {
 				play(connection);
-			}).catch( console.log('error...') );
+			}).catch( error => {
+				console.log(error);
+				return;
+			})
 		}
 
     function play(connection) {
+
 			const { title, url, name } = server.queue[0];
+			message.channel.send(`Now playing:\t\`${title}\`\tQueued by:\t${name}`);
       server.dispatcher = connection.playStream( ytdl( url, {filter: "audioonly"} ) );
 
-			message.channel.send(`Now playing:\t\`${title}\`\tQueued by:\t${name}`);
-
+			server.playing = { title: title, name: name };
 			server.priorities[message.author.id] -= 1;
-      server.queue.shift();
+			server.queue.shift();
 
-      server.dispatcher.on("end", () => {
+      server.dispatcher.on('end', () => {
+				console.log('song ending.');
+				for (const item of server.queue) {
+					item.priority -= 1;
+				}
         if ( server.queue[0] ) {
           play(connection);
         } else {
 					console.log('disconecting');
           connection.disconnect();
         }
-      });
+      })
+			.on('error', error => {
+				console.log(error);
+				message.channel.send('There was an error');
+			});
     }
 
 	},

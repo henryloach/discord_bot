@@ -61,7 +61,7 @@ module.exports = {
 				if ( data[n].id != getUserFromMention(item.author) ) continue;
 			 	for (let m = 0; m < data[n].connections.length; m++) {
 			 		item.mentions.users.forEach((messageItem, j) => {
-			 			if ( getUserFromMention(messageItem)== data[n].connections[m].id ) data[n].connections[m].num += 1;
+			 			if ( getUserFromMention(messageItem) == data[n].connections[m].id ) data[n].connections[m].num += 1;
 			 		});
 			 	}
 			}
