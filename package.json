@@ -8,6 +8,7 @@
     "node-fetch": "^2.6.0",
     "node-opus": "^0.3.3",
     "opusscript": "0.0.7",
+    "r2": "^2.0.1",
     "simple-youtube-api": "^5.2.1",
     "ytdl-core": "^2.0.1"
   },

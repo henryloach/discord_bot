@@ -1,11 +1,17 @@
+const Discord = require('discord.js');
+
 module.exports = {
   name: 'avatar',
   description: 'avatar',
-  execute(message, ags) {
-    const Discord = require('discord.js');
+  execute(message, args) {
     const avatarList = message.mentions.users.map(user => {
-		  return `${user.username}'s avatar: <${user.displayAvatarURL}>`;
+		  return {name: user.username, url: user.displayAvatarURL};
 	  });
-    message.channel.send(avatarList);
+
+    for ( const item of avatarList ) {
+      message.channel.send(`${item.name}'s avatar:\n`)
+      message.channel.send(item.url);
+    }
+
   },
 };

@@ -8,8 +8,6 @@ module.exports = {
 	description: 'play',
 	async execute(message, args) {
 
-		console.log("From play");
-
     if ( !message.member.voiceChannel ) {
       message.channel.send('You must be in a voice channel to queue a song!');
       return;
@@ -41,13 +39,17 @@ module.exports = {
 			server.priorities[message.author.id] += 1;
 		}
 
-		let url;
 		if ( !search_string.includes('.com') ) {
-			const videos = await youtube.searchVideos(search_string, 1);
-			const vidId = videos[0].id;
-			url = `https://www.youtube.com/watch?v=${vidId}`;
+			try {
+				const videos = await youtube.searchVideos(search_string, 1);
+				var vidId = videos[0].id;
+			} catch (e) {
+				console.log(e);
+				return message.channel.send(`search failed. The dialy quota is probably exceded. urls should still work.`);
+			}
+			var url = `https://www.youtube.com/watch?v=${vidId}`;
 		} else {
-			url = search_string;
+			var url = search_string;
 		}
 
 		let songInfo = {};
@@ -99,16 +101,15 @@ module.exports = {
 			server.queue.shift();
 
       server.dispatcher.on('end', () => {
-				console.log('song ending.');
-				for (const item of server.queue) {
-					item.priority -= 1;
-				}
         if ( server.queue[0] ) {
           play(connection);
         } else {
 					console.log('disconecting');
           connection.disconnect();
         }
+				for (const item of server.queue) {
+					item.priority -= 1;
+				}
       })
 			.on('error', error => {
 				console.log(error);
